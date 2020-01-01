@@ -51,7 +51,7 @@ class DetailViewController: UIViewController {
         super.viewWillAppear(animated)
         setupFetchedResultController()
         
-        if (resultController.fetchedObjects?.count)! < 1  {
+        if let count = resultController.fetchedObjects?.count, count < 1{
             reloadImageCollection(nil)
         }
         collectionView.reloadData()
@@ -203,14 +203,14 @@ extension DetailViewController: UICollectionViewDataSource, UICollectionViewDele
         
         if photo.image == nil {
             APIClient.shared.downloadImage(imageUrl: photo.imageUrl!) {
-                (image, error) in
+                [weak self] (image, error) in
                 guard error == nil else {
-                    self.showAlertMessage(message: error!)
+                    self?.showAlertMessage(message: error!)
                     return
                 }
                 DispatchQueue.main.async {
                     photo.image = image
-                    self.saveViewContext()
+                    self?.saveViewContext()
                     cell.activityIndicator.stopAnimating()
                 }
             }
@@ -228,6 +228,8 @@ extension DetailViewController: UICollectionViewDataSource, UICollectionViewDele
             let photo = resultController.object(at: indexPath)
             DataController.shared.viewContext.delete(photo)
             saveViewContext()
+        } else {
+            showAlertMessage(message: "Please tap edit to remove")
         }
     }
 }
